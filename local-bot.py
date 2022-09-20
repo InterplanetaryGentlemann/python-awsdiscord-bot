@@ -5,16 +5,16 @@ import interactions
 import os
 from dotenv import load_dotenv, find_dotenv
 
+#Load the .env file and set the Env Variables
 load_dotenv(find_dotenv())
-
 TOKEN=os.getenv("DISCORD_TOKEN")
 GUILD=os.getenv("GUILD_TOKEN")
 
-#Set the bot
+#Set the bot and give it the Discord Bot Token
 bot = interactions.Client(token=TOKEN)
 
 
-#Startup Event
+#Startup Event - Prints Ready messaage when bot is ready
 @bot.event
 async def on_ready():
     print("Ready!")
@@ -48,9 +48,9 @@ async def aws_stop(ctx: interactions.CommandContext):
 )
 async def aws_status(ctx: interactions.CommandContext):
     #AWS EC2 Code goes in this function
-    await ctx.send("Instance is ")
+    await ctx.send("Instance is ")#Add variable to get instance status and append to string
 
-#Start Command, Starts the specified instance
+#Restart Command, Restarts the specified instance
 @bot.command(
     name="aws-restart",
     description="Restarts an EC2",
@@ -60,4 +60,5 @@ async def aws_restart(ctx: interactions.CommandContext):
     #AWS EC2 Code goes in this function
     await ctx.send("Restarting specified instance")
 
+#Start the Bot
 bot.start()

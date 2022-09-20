@@ -9,8 +9,8 @@ from botocore.exceptions import ClientError
 import os
 from dotenv import load_dotenv, find_dotenv
 
+#Load the .env file and set the Env Variables
 load_dotenv(find_dotenv())
-
 TOKEN=os.getenv("DISCORD_TOKEN")
 GUILD=os.getenv("GUILD_TOKEN")
 
