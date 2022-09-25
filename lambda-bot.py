@@ -1,87 +1,56 @@
-#Import Discord Interactions Py Library
-import interactions
+import json
 
-#Import boto3 AWS Library
-import boto3
-from botocore.exceptions import ClientError
+from nacl.signing import VerifyKey
+from nacl.exceptions import BadSignatureError
 
-#Import the OS and DotEnv libraries to safely load tokens
-import os
-from dotenv import load_dotenv, find_dotenv
+PUBLIC_KEY = '<your public key here>' # found on Discord Application -> General Information page
+PING_PONG = {"type": 1}
+RESPONSE_TYPES =  { 
+                    "PONG": 1, 
+                    "ACK_NO_SOURCE": 2, 
+                    "MESSAGE_NO_SOURCE": 3, 
+                    "MESSAGE_WITH_SOURCE": 4, 
+                    "ACK_WITH_SOURCE": 5
+                  }
 
-#Load the .env file and set the Env Variables
-load_dotenv(find_dotenv())
-TOKEN=os.getenv("DISCORD_TOKEN")
-GUILD=os.getenv("GUILD_TOKEN")
 
-#Set the bot
-bot = interactions.Client(token=TOKEN)
+def verify_signature(event):
+    raw_body = event.get("rawBody")
+    auth_sig = event['params']['header'].get('x-signature-ed25519')
+    auth_ts  = event['params']['header'].get('x-signature-timestamp')
+    
+    message = auth_ts.encode() + raw_body.encode()
+    verify_key = VerifyKey(bytes.fromhex(PUBLIC_KEY))
+    verify_key.verify(message, bytes.fromhex(auth_sig)) # raises an error if unequal
 
-#Creates a Lambda Handler for the code, Yay!
+def ping_pong(body):
+    if body.get("type") == 1:
+        return True
+    return False
+    
 def lambda_handler(event, context):
-
-    #AWS Vars for getting/setting instances
-    #instance_id='' Need some method of getting AWS Instance ID's with a certian tag
-    #region='' Need some method of setting the region, would be fine to set manually
-    #ec2 = boto3.client('ec2')
-
-    #Startup Event
-    @bot.event
-    async def on_ready():
-        print("Ready!")
+    print(f"event {event}") # debug print
+    # verify the signature
+    try:
+        verify_signature(event)
+    except Exception as e:
+        raise Exception(f"[UNAUTHORIZED] Invalid request signature: {e}")
 
 
-    #Start Command, Starts the specified instance
-    @bot.command(
-        name="aws-start",
-        description="Starts an EC2",
-        scope=GUILD
-    )
-    async def aws_start(ctx: interactions.CommandContext):
-         await ctx.send("Starting specified instance")
-       
-
-    #Stop Command, Stops the specified instance
-    @bot.command(
-        name="aws-stop",
-        description="Stops an EC2",
-        scope=GUILD
-
-    )
-    async def aws_stop(ctx: interactions.CommandContext):
-         await ctx.send("Stopping specified instance")
-
-        # #Gets the instance state and checks to ensure it's
-
-        # resp = ec2.describe_instance_status(
-        #     InstanceIds=[str(instance_id)],
-        #     IncludeAllInstances=True)
-
-        #  #print("Response = ",resp)
-
-        # instance_status = resp['InstanceStatuses'][0]['InstanceState']['Code']
-
-        #  #print("Instance status =", instance_status)
-
-    #Status Command, Shows the specified instances status
-    @bot.command(
-        name="aws-status",
-        description="Shows the status of an EC2 Instance",
-        scope=GUILD
-
-    )
-    async def aws_status(ctx: interactions.CommandContext):
-        #AWS EC2 Code goes in this function
-        await ctx.send("Instance is ")
-
-    #Start Command, Starts the specified instance
-    @bot.command(
-        name="aws-restart",
-        description="Restarts an EC2",
-        scope=GUILD
-    )
-    async def aws_restart(ctx: interactions.CommandContext):
-        #AWS EC2 Code goes in this function
-        await ctx.send("Restarting specified instance")
-
-    bot.start()
+    # check if message is a ping
+    body = event.get('body-json')
+    if ping_pong(body):
+        return PING_PONG
+    
+    
+    # dummy return
+    return {
+            "type": RESPONSE_TYPES['MESSAGE_NO_SOURCE'],
+            "data": {
+                "tts": False,
+                "content": "BEEP BOOP",
+                "embeds": [],
+                "allowed_mentions": []
+            }
+        }
+   
