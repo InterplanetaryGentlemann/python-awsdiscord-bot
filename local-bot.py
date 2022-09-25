@@ -5,6 +5,10 @@ import interactions
 import os
 from dotenv import load_dotenv, find_dotenv
 
+#Import boto3 AWS Library
+import boto3
+from botocore.exceptions import ClientError
+
 #Load the .env file and set the Env Variables
 load_dotenv(find_dotenv())
 TOKEN=os.getenv("DISCORD_TOKEN")
@@ -35,7 +39,6 @@ async def aws_start(ctx: interactions.CommandContext):
     name="aws-stop",
     description="Stops an EC2",
     scope=GUILD
-
 )
 async def aws_stop(ctx: interactions.CommandContext):
     await ctx.send("Stopping specified instance")
