@@ -7,7 +7,7 @@ from nacl.exceptions import BadSignatureError
 
 #Set Public Key and Response Types
 
-PUBLIC_KEY = 'PUT_KEY_HERE' # found on Discord Application -> General Information page
+PUBLIC_KEY = '7a0537b47a2207c0df3a495e6e9045663d15ccb29da95e68c7a576acb09e4f37' # found on Discord Application -> General Information page
 PING_PONG = {"type": 1}
 RESPONSE_TYPES =  { 
                     "PONG": 1, 
@@ -32,12 +32,36 @@ def verify_signature(event):
 #Set a function to verify whether the given type is a ping
 
 def ping_pong(body):
+    #print(f"Checking Ping")
     if body.get("type") == 1:
         return True
     return False
     
+def command_handler(body):
+    command = body['data']['name']
+    
+    print(f"{command}")
+#RESPONSE_TYPES['MESSAGE_WITH_SOURCE'],
+    if command == 'aws-start':
+        return { 
+            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+            "data": {
+                "tts": False,
+                "content": "Congrats on sending your command!",
+                "embeds": [],
+                "allowed_mentions": { "parse": [] }
+            }
+        }
+
+
+    else:
+        return {
+            'statusCode': 400,
+            'body': ('unhandled command')
+    }
+    
 def lambda_handler(event, context):
-    print(f"event {event}") # debug print, prints the event request
+    #print(f"event {event}") # debug print, prints the event request
     
     # verify the signature
     try:
@@ -45,21 +69,37 @@ def lambda_handler(event, context):
     except Exception as e:
         raise Exception(f"[UNAUTHORIZED] Invalid request signature: {e}")
 
-
-    #If the message is a ping, return the same type
     body = event.get('body-json')
-   # if ping_pong(body):
-#        return PING_PONG
+    #body_data = body.get('data')
     
-    if body.get("name") == "aws-start":
-    # dummy return
-        print(f"AWS-Start ran successfully!")
-        return {
-                "type": RESPONSE_TYPES['MESSAGE_NO_SOURCE'],
-                "data": {
-                    "tts": False,
-                    "content": "BEEP BOOP",
-                    "embeds": [],
-                    "allowed_mentions": []
-                }
-            }
+    #print(f" {body_data}")
+    
+    if ping_pong(body):
+        return PING_PONG
+    elif not ping_pong(body):
+        return command_handler(body)
+    else:
+      return {
+        'statusCode': 400,
+        'body': json.dumps('unhandled request type')
+      }
+    
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+    #elif the message is not a ping, run the command
+    
+#    return {
+#        "type": RESPONSE_TYPES['MESSAGE_NO_SOURCE'],
+#        "data": {
+#            "tts": False,
+#            "content": "BEEP BOOP",
+#            "embeds": [],
+#            "allowed_mentions": []
+#            }
+#        }
+    
