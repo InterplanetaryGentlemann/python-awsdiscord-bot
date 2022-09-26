@@ -28,7 +28,8 @@ async def on_ready():
 @bot.command(
     name="aws-start",
     description="Starts an EC2",
-    scope=GUILD
+    scope=GUILD,
+    type= 3
 )
 async def aws_start(ctx: interactions.CommandContext):
       await ctx.send("Starting specified instance")
