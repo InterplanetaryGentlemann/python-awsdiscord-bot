@@ -7,7 +7,7 @@ from nacl.exceptions import BadSignatureError
 
 #Set Public Key and Response Types
 
-PUBLIC_KEY = '7a0537b47a2207c0df3a495e6e9045663d15ccb29da95e68c7a576acb09e4f37' # found on Discord Application -> General Information page
+PUBLIC_KEY = 'KEY_GO_HERE' # found on Discord Application -> General Information page
 PING_PONG = {"type": 1}
 RESPONSE_TYPES =  { 
                     "PONG": 1, 
