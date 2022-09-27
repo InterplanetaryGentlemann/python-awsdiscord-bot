@@ -29,9 +29,16 @@ async def on_ready():
     name="aws-start",
     description="Starts an EC2",
     scope=GUILD,
-    type=1
+    options = [
+        interactions.Option(
+            name="instance",
+            description="What you want to say",
+            type=interactions.OptionType.STRING,
+            required=True,
+        ),
+    ],
 )
-async def aws_start(ctx: interactions.CommandContext):
+async def aws_start(ctx: interactions.CommandContext, instance: str =""):
       await ctx.send("Starting specified instance")
        
 
@@ -39,18 +46,34 @@ async def aws_start(ctx: interactions.CommandContext):
 @bot.command(
     name="aws-stop",
     description="Stops an EC2",
-    scope=GUILD
+    scope=GUILD,
+    options = [
+        interactions.Option(
+            name="instance",
+            description="Name of the server",
+            type=interactions.OptionType.STRING,
+            required=True,
+        ),
+    ],
 )
-async def aws_stop(ctx: interactions.CommandContext):
+async def aws_stop(ctx: interactions.CommandContext, instance: str =""):
     await ctx.send("Stopping specified instance")
     
 #Status Command, Shows the specified instances status
 @bot.command(
     name="aws-status",
     description="Shows the status of an EC2 Instance",
-    scope=GUILD
+    scope=GUILD,
+    options = [
+        interactions.Option(
+            name="instance",
+            description="Name of the server",
+            type=interactions.OptionType.STRING,
+            required=True,
+        ),
+    ],
 )
-async def aws_status(ctx: interactions.CommandContext):
+async def aws_status(ctx: interactions.CommandContext, instance: str =""):
     #AWS EC2 Code goes in this function
     await ctx.send("Instance is ")#Add variable to get instance status and append to string
 
@@ -58,9 +81,17 @@ async def aws_status(ctx: interactions.CommandContext):
 @bot.command(
     name="aws-restart",
     description="Restarts an EC2",
-    scope=GUILD
+    scope=GUILD,
+    options = [
+        interactions.Option(
+            name="instance",
+            description="Name of the Server",
+            type=interactions.OptionType.STRING,
+            required=True,
+        ),
+    ],
 )
-async def aws_restart(ctx: interactions.CommandContext):
+async def aws_restart(ctx: interactions.CommandContext, instance: str =""):
     #AWS EC2 Code goes in this function
     await ctx.send("Restarting specified instance")
 

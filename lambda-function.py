@@ -5,10 +5,13 @@ import json
 from nacl.signing import VerifyKey #nacl allows us to verify the public key between the app and the request
 from nacl.exceptions import BadSignatureError
 
+import boto3 
+
 #Set Public Key and Response Types
 
 PUBLIC_KEY = 'KEY_GO_HERE' # found on Discord Application -> General Information page
 PING_PONG = {"type": 1}
+CLIENT = boto3.client('ec2')
 RESPONSE_TYPES =  { 
                     "PONG": 1, 
                     "ACK_NO_SOURCE": 2, 
@@ -29,30 +32,62 @@ def verify_signature(event):
     verify_key = VerifyKey(bytes.fromhex(PUBLIC_KEY))
     verify_key.verify(message, bytes.fromhex(auth_sig)) # raises an error if unequal
 
-#Set a function to verify whether the given type is a ping
+#A function to verify whether the message is a ping from Discord
 
 def ping_pong(body):
-    #print(f"Checking Ping")
     if body.get("type") == 1:
         return True
     return False
-    
+
+#This function handles the filtering of the various commands. 
+#It gets the name of the run command, calls the related AWS Function 
+#and sends a response
+
 def command_handler(body):
-    command = body['data']['name']
-    
-    print(f"{command}")
-#RESPONSE_TYPES['MESSAGE_WITH_SOURCE'],
+    command = body['data']['name'] #Get the name of the command from the json body
+    option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+
     if command == 'aws-start':
         return { 
             "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
             "data": {
                 "tts": False,
-                "content": "Congrats on sending your command!",
+                "content": " is starting!",
                 "embeds": [],
                 "allowed_mentions": { "parse": [] }
             }
         }
-
+    elif command == 'aws-status':
+        #status = CLIENT.describe_instance_status()
+        return { 
+            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+            "data": {
+                "tts": False,
+                "content": " is !",
+                "embeds": [],
+                "allowed_mentions": { "parse": [] }
+            }
+        }
+    elif command == 'aws-stop':
+        return { 
+            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+            "data": {
+                "tts": False,
+                "content": " is stopping!",
+                "embeds": [],
+                "allowed_mentions": { "parse": [] }
+            }
+        }
+    elif command == 'aws-restart':
+        return { 
+            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+            "data": {
+                "tts": False,
+                "content": " is restarting!",
+                "embeds": [],
+                "allowed_mentions": { "parse": [] }
+            }
+        }
 
     else:
         return {
@@ -70,9 +105,6 @@ def lambda_handler(event, context):
         raise Exception(f"[UNAUTHORIZED] Invalid request signature: {e}")
 
     body = event.get('body-json')
-    #body_data = body.get('data')
-    
-    #print(f" {body_data}")
     
     if ping_pong(body):
         return PING_PONG
@@ -83,23 +115,4 @@ def lambda_handler(event, context):
         'statusCode': 400,
         'body': json.dumps('unhandled request type')
       }
-    
- 
- 
- 
- 
- 
- 
- 
-    #elif the message is not a ping, run the command
-    
-#    return {
-#        "type": RESPONSE_TYPES['MESSAGE_NO_SOURCE'],
-#        "data": {
-#            "tts": False,
-#            "content": "BEEP BOOP",
-#            "embeds": [],
-#            "allowed_mentions": []
-#            }
-#        }
-    
+
