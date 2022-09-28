@@ -11,7 +11,6 @@ import boto3
 
 PUBLIC_KEY = 'KEY_GO_HERE' # found on Discord Application -> General Information page
 PING_PONG = {"type": 1}
-CLIENT = boto3.client('ec2')
 RESPONSE_TYPES =  { 
                     "PONG": 1, 
                     "ACK_NO_SOURCE": 2, 
@@ -19,7 +18,6 @@ RESPONSE_TYPES =  {
                     "MESSAGE_WITH_SOURCE": 4, 
                     "ACK_WITH_SOURCE": 5
                   }
-
 
 #Verify the Public Key between the one we copied from the developer page and the one given in the API request
 
@@ -47,18 +45,30 @@ def command_handler(body):
     command = body['data']['name'] #Get the name of the command from the json body
     option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
 
+    #boto3 Variables EC2 sets the boto3 resource type and the filter builds
+    # a filter related to the discordBotEnabled tag
+    EC2 = boto3.client('ec2')
+    servername = [{
+           'Name': 'tag:serverName',
+           'Values': [option]
+        }
+    ]
+
     if command == 'aws-start':
+        get_instance(EC2, servername, option)
+        option_string = (f"Instance {option} is Starting!")
+        print(option_string)
         return { 
             "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
             "data": {
                 "tts": False,
-                "content": " is starting!",
+                "content": option_string,
                 "embeds": [],
                 "allowed_mentions": { "parse": [] }
             }
         }
     elif command == 'aws-status':
-        #status = CLIENT.describe_instance_status()
+        #status = 
         return { 
             "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
             "data": {
@@ -95,6 +105,13 @@ def command_handler(body):
             'body': ('unhandled command')
     }
     
+
+def get_instance(client, filter, tag):
+    client.instances.filter(FILTER=filter)    
+
+#def start_instance(instance, tag):
+    #instances = instance.instances.filter(FILTER=filters)
+
 def lambda_handler(event, context):
     #print(f"event {event}") # debug print, prints the event request
     
