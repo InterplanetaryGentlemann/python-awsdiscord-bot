@@ -45,9 +45,8 @@ def command_handler(body):
     command = body['data']['name'] #Get the name of the command from the json body
     option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
 
-    #boto3 Variables EC2 sets the boto3 resource type and the filter builds
-    # a filter related to the discordBotEnabled tag
-    EC2 = boto3.client('ec2')
+    EC2 = boto3.client('ec2') #boto3 client set to the ec2 resource type
+    #servername sets the tag information with the information provided by the user
     servername = [{
            'Name': 'tag:serverName',
            'Values': [option]
@@ -107,7 +106,13 @@ def command_handler(body):
     
 
 def get_instance(client, filter, tag):
-    client.instances.filter(FILTER=filter)    
+    instances = client.instances.filter(FILTER=filter)
+    for instance in instances:
+        if instance.tags != None:
+            for tags in instance.tags:
+                if tag['Key'] == 'discordBot':
+                    return instances
+
 
 #def start_instance(instance, tag):
     #instances = instance.instances.filter(FILTER=filters)
@@ -130,6 +135,6 @@ def lambda_handler(event, context):
     else:
       return {
         'statusCode': 400,
-        'body': json.dumps('unhandled request type')
+        'body': ('unhandled request type')
       }
 
