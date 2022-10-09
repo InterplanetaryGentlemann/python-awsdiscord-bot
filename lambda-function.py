@@ -138,15 +138,36 @@ def command_handler(body):
 
 #Function that starts the AWS instance with the given name
 def start_instance(client, filter, name):
+    instances = client.instances.filter(Filters=filter)
+    instance = get_instance(instances, name)
+
+        #Check 1:
+            #Return 0
+        #Check 2:
+            #Return 1
     return
+
+
 #Function that gets the runtime status of the given instance
 def instance_status(client, filter, name):
+    instances = client.instances.filter(Filters=filter)
+
+        #Check 1:
+            #Return 2
+        #Check 2: 
+            #Return 3
     return
+
+
 #Function that stops the AWS instance with the given name
 def stop_instance(client, filter, name):
+    instances = client.instances.filter(Filters=filter)
     return
+
+
 #Function that restarts the AWS instance with the given name
 def restart_instance(client, filter, name):
+    instances = client.instances.filter(Filters=filter)
     return
 
 #Function that returns a list of all the AWS instances the bot can interact with, determined by the AWS tag botEnabled=True
@@ -164,6 +185,15 @@ def list_instances(client, filter):
                     name = (f"{tag['Value']}")
                     available_instances.append(name)
     return available_instances
+
+#Function that takes the list of instances from other functions and returns the instance that matches the name
+def get_instance(instances, name):
+    
+    for instance in instances:
+        if instance.tags != None:
+            for tag in instance.tags:
+                if tag['Key'] == 'Name'and tag['Value'] == name:
+                    return instance
 
 def lambda_handler(event, context):
     #print(f"event {event}") # debug print, prints the event request
