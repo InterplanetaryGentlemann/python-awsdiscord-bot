@@ -95,5 +95,15 @@ async def aws_restart(ctx: interactions.CommandContext, instance: str =""):
     #AWS EC2 Code goes in this function
     await ctx.send("Restarting specified instance")
 
+
+# List Command, Lists all instances the bot can see, as determined by the botEnabled=True tag
+@bot.command(
+    name="aws-list",
+    description="Lists the EC2 Instances the Bot can control",
+    scope=GUILD,
+)
+async def aws_restart(ctx: interactions.CommandContext, instance: str =""):
+    #AWS EC2 Code goes in this function
+    await ctx.send("Restarting specified instance")
 #Start the Bot
 bot.start()

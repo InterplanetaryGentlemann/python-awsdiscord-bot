@@ -9,7 +9,7 @@ import boto3
 
 #Set Public Key and Response Types
 
-PUBLIC_KEY = 'KEY_GO_HERE' # found on Discord Application -> General Information page
+PUBLIC_KEY = '7a0537b47a2207c0df3a495e6e9045663d15ccb29da95e68c7a576acb09e4f37' # found on Discord Application -> General Information page
 PING_PONG = {"type": 1}
 RESPONSE_TYPES =  { 
                     "PONG": 1, 
@@ -43,20 +43,20 @@ def ping_pong(body):
 
 def command_handler(body):
     command = body['data']['name'] #Get the name of the command from the json body
-    option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+    
 
-    EC2 = boto3.client('ec2') #boto3 client set to the ec2 resource type
+    EC2 = boto3.resource('ec2') #boto3 client set to the ec2 resource type
     #servername sets the tag information with the information provided by the user
-    servername = [{
-           'Name': 'tag:serverName',
-           'Values': [option]
-        }
-    ]
-
+    #servername = [{
+    #       'Name': 'tag:Name',
+    #       'Values': [option]
+    #    }
+    #]
+    botenabled = [{"Name" :"tag:botEnabled", "Values":["True"] }]
     if command == 'aws-start':
-        get_instance(EC2, servername, option)
+        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+        #start_instance(EC2, botenabled, option)
         option_string = (f"Instance {option} is Starting!")
-        print(option_string)
         return { 
             "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
             "data": {
@@ -67,7 +67,8 @@ def command_handler(body):
             }
         }
     elif command == 'aws-status':
-        #status = 
+        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+        #instance_status(EC2, botenabled, option)
         return { 
             "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
             "data": {
@@ -78,6 +79,8 @@ def command_handler(body):
             }
         }
     elif command == 'aws-stop':
+        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+        #stop_instance(EC2, botenabled, option)
         return { 
             "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
             "data": {
@@ -88,6 +91,8 @@ def command_handler(body):
             }
         }
     elif command == 'aws-restart':
+        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+        #restart_instance(EC2, botenabled, option)
         return { 
             "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
             "data": {
@@ -97,25 +102,68 @@ def command_handler(body):
                 "allowed_mentions": { "parse": [] }
             }
         }
+    elif command == 'aws-list':
+        #Get instance names
+        instances = list_instances(EC2, botenabled)
 
+        #If the list is empty, respond that no instances were found
+        if instances == []:
+            return { 
+                "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+                "data": {
+                    "tts": False,
+                    "content": "No Instances Available",
+                    "embeds": [],
+                    "allowed_mentions": { "parse": [] }
+                }
+            }
+        else:  
+            #Format the list so that each entry shows up on a new line  
+            list_string = ('\n'.join(map(str, instances)))
+
+            return { 
+                "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+                "data": {
+                    "tts": False,
+                    "content": list_string,
+                    "embeds": [],
+                    "allowed_mentions": { "parse": [] }
+                }
+            }
     else:
         return {
             'statusCode': 400,
             'body': ('unhandled command')
     }
-    
 
-def get_instance(client, filter, tag):
-    instances = client.instances.filter(FILTER=filter)
+#Function that starts the AWS instance with the given name
+def start_instance(client, filter, name):
+    return
+#Function that gets the runtime status of the given instance
+def instance_status(client, filter, name):
+    return
+#Function that stops the AWS instance with the given name
+def stop_instance(client, filter, name):
+    return
+#Function that restarts the AWS instance with the given name
+def restart_instance(client, filter, name):
+    return
+
+#Function that returns a list of all the AWS instances the bot can interact with, determined by the AWS tag botEnabled=True
+def list_instances(client, filter):
+    instances = client.instances.filter(Filters=filter)
+
+    #Declaring a list to store all of the available instances
+    available_instances=[]
+
+    #For each instance, add the Name tag to the list
     for instance in instances:
         if instance.tags != None:
-            for tags in instance.tags:
-                if tag['Key'] == 'discordBot':
-                    return instances
-
-
-#def start_instance(instance, tag):
-    #instances = instance.instances.filter(FILTER=filters)
+            for tag in instance.tags:
+                if tag['Key'] == 'Name':
+                    name = (f"{tag['Value']}")
+                    available_instances.append(name)
+    return available_instances
 
 def lambda_handler(event, context):
     #print(f"event {event}") # debug print, prints the event request
