@@ -19,6 +19,17 @@ RESPONSE_TYPES =  {
                     "ACK_WITH_SOURCE": 5
                   }
 
+
+EC2 = boto3.resource('ec2') #boto3 client set to the ec2 resource type
+#servername sets the tag information with the information provided by the user
+#servername = [{
+#       'Name': 'tag:Name',
+#       'Values': [option]
+#    }
+#]
+botenabled = [{"Name" :"tag:botEnabled", "Values":["True"] }]
+
+
 #Verify the Public Key between the one we copied from the developer page and the one given in the API request
 
 def verify_signature(event):
@@ -43,108 +54,98 @@ def ping_pong(body):
 
 def command_handler(body):
     command = body['data']['name'] #Get the name of the command from the json body
-    
-
-    EC2 = boto3.resource('ec2') #boto3 client set to the ec2 resource type
-    #servername sets the tag information with the information provided by the user
-    #servername = [{
-    #       'Name': 'tag:Name',
-    #       'Values': [option]
-    #    }
-    #]
-    botenabled = [{"Name" :"tag:botEnabled", "Values":["True"] }]
-
-    
-
-    def aws_start(body):
-        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
-        #start_instance(EC2, botenabled, option)
-        option_string = (f"Instance {option} is Starting!")
-        return { 
-            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
-            "data": {
-                "tts": False,
-                "content": option_string,
-                "embeds": [],
-                "allowed_mentions": { "parse": [] }
-            }
-        }
-    
-    def aws_status(body):
-        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
-        #instance_status(EC2, botenabled, option)
-        return { 
-            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
-            "data": {
-                "tts": False,
-                "content": " is !",
-                "embeds": [],
-                "allowed_mentions": { "parse": [] }
-            }
-        }
-
-    def aws_stop(body):
-        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
-        #stop_instance(EC2, botenabled, option)
-        return { 
-            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
-            "data": {
-                "tts": False,
-                "content": " is stopping!",
-                "embeds": [],
-                "allowed_mentions": { "parse": [] }
-            }
-        }
-
-    def aws_restart(body):
-        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
-        #restart_instance(EC2, botenabled, option)
-        return { 
-            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
-            "data": {
-                "tts": False,
-                "content": " is restarting!",
-                "embeds": [],
-                "allowed_mentions": { "parse": [] }
-            }
-        }
-
-    def aws_list():
-        #Get instance names
-        instances = list_instances(EC2, botenabled)
-
-        #If the list is empty, respond that no instances were found
-        if instances == []:
-            return { 
-                "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
-                "data": {
-                    "tts": False,
-                    "content": "No Instances Available",
-                    "embeds": [],
-                    "allowed_mentions": { "parse": [] }
-                }
-            }
-        else:  
-            #Format the list so that each entry shows up on a new line  
-            list_string = ('\n'.join(map(str, instances)))
-
-            return { 
-                "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
-                "data": {
-                    "tts": False,
-                    "content": list_string,
-                    "embeds": [],
-                    "allowed_mentions": { "parse": [] }
-                }
-            }
-
-
     handler = {
         'aws-start':aws_start(body), 'aws-status':aws_status(body),'aws-stop':aws_stop(body),'aws-restart':aws_restart(body),'aws-list':aws_list()
     }
 
-    handler[command]
+    return handler[command]
+    
+    
+def aws_start(body):
+    if 'options' in body['data']:
+        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+        option_string = (f"Instance {option} is Starting!")
+    else:
+        option_string = "Not a valid option."
+    #start_instance(EC2, botenabled, option)
+    
+    return { 
+        "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+        "data": {
+            "tts": False,
+            "content": option_string,
+            "embeds": [],
+            "allowed_mentions": { "parse": [] }
+        }
+    }
 
+def aws_status(body):
+    #option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+    #instance_status(EC2, botenabled, option)
+    return { 
+        "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+        "data": {
+            "tts": False,
+            "content": " is !",
+            "embeds": [],
+            "allowed_mentions": { "parse": [] }
+        }
+    }
+
+def aws_stop(body):
+    #option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+    #stop_instance(EC2, botenabled, option)
+    return { 
+        "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+        "data": {
+            "tts": False,
+            "content": " is stopping!",
+            "embeds": [],
+            "allowed_mentions": { "parse": [] }
+        }
+    }
+
+def aws_restart(body):
+    #option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
+    #restart_instance(EC2, botenabled, option)
+    return { 
+        "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+        "data": {
+            "tts": False,
+            "content": " is restarting!",
+            "embeds": [],
+            "allowed_mentions": { "parse": [] }
+        }
+    }
+
+def aws_list():
+    #Get instance names
+    instances = list_instances(EC2, botenabled)
+
+    #If the list is empty, respond that no instances were found
+    if instances == []:
+        return { 
+            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+            "data": {
+                "tts": False,
+                "content": "No Instances Available",
+                "embeds": [],
+                "allowed_mentions": { "parse": [] }
+            }
+        }
+    else:  
+        #Format the list so that each entry shows up on a new line  
+        list_string = ('\n'.join(map(str, instances)))
+
+        return { 
+            "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
+            "data": {
+                "tts": False,
+                "content": list_string,
+                "embeds": [],
+                "allowed_mentions": { "parse": [] }
+            }
+        }
     
 #Function that starts the AWS instance with the given name
 def start_instance(client, filter, name):
