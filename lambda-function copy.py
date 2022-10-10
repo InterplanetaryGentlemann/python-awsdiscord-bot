@@ -48,9 +48,10 @@ def ping_pong(body):
         return True
     return False
 
-#This function handles the filtering of the various commands. 
-#It gets the name of the run command, calls the related AWS Function 
-#and sends a response
+#This function handles the filtering of the various commands
+#It gets the command name from Discord's JSON response and puts it
+#through the handler switch-case. Each command string is mapped to
+#the related function
 
 def command_handler(body):
     command = body['data']['name'] #Get the name of the command from the json body
@@ -60,24 +61,37 @@ def command_handler(body):
 
     return handler[command]
     
-    
+#This is the function for the aws-start slash command.
+#if all checks are passed, the specified instance should start and 
+#the switch case should respond with the "Staring!" message
 def aws_start(body):
     if 'options' in body['data']:
-        option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
-        option_string = (f"Instance {option} is Starting!")
+        option = body['data']['options'][0]['value'] #Get the value of the command's argument
+        #example reponse string(f"Instance {option} is Starting!")
+        #response = start_instance(EC2, botenabled, option)
+        message = {
+            0:(f"Instance {option} does not exist!"),1:(f"Instance {option} is Starting!"), 2:(f"Instance {option} is already Starting!")
+        }
+        response_string = message[0]
+
     else:
-        option_string = "Not a valid option."
-    #start_instance(EC2, botenabled, option)
+        response_string = "Not a valid option."
+    
+    
     
     return { 
         "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
         "data": {
             "tts": False,
-            "content": option_string,
+            "content": response_string,
             "embeds": [],
             "allowed_mentions": { "parse": [] }
         }
     }
+
+#The aws-status command sends the option to the instance_status function
+#and returns the current state (Starting, Running, Stopped, etc.) of the 
+#specified EC2 Instance
 
 def aws_status(body):
     #option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
@@ -92,6 +106,8 @@ def aws_status(body):
         }
     }
 
+#The aws-stop command works the same as the start command,
+#just with the checks and endgoal reversed
 def aws_stop(body):
     #option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
     #stop_instance(EC2, botenabled, option)
@@ -105,6 +121,8 @@ def aws_stop(body):
         }
     }
 
+#The restart command works similarly to the stop command,
+#with the endgoal being to reboot the server rather than stop it
 def aws_restart(body):
     #option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
     #restart_instance(EC2, botenabled, option)
@@ -147,7 +165,7 @@ def aws_list():
             }
         }
     
-#Function that starts the AWS instance with the given name
+#Function that starts the instance of the given name
 def start_instance(client, filter, name):
     instances = client.instances.filter(Filters=filter)
     instance = get_instance(instances, name)
@@ -181,7 +199,7 @@ def restart_instance(client, filter, name):
     instances = client.instances.filter(Filters=filter)
     return
 
-#Function that returns a list of all the AWS instances the bot can interact with, determined by the AWS tag botEnabled=True
+#Function that returns a list of all the AWS instances the bot 
 def list_instances(client, filter):
     instances = client.instances.filter(Filters=filter)
 
@@ -195,6 +213,7 @@ def list_instances(client, filter):
                 if tag['Key'] == 'Name':
                     name = (f"{tag['Value']}")
                     available_instances.append(name)
+    #Return the completed list
     return available_instances
 
 #Function that takes the list of instances from other functions and returns the instance that matches the name
