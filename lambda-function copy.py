@@ -19,14 +19,13 @@ RESPONSE_TYPES =  {
                     "ACK_WITH_SOURCE": 5
                   }
 
+#boto3 client set to the ec2 resource type
+EC2 = boto3.resource('ec2') 
 
-EC2 = boto3.resource('ec2') #boto3 client set to the ec2 resource type
-#servername sets the tag information with the information provided by the user
-#servername = [{
-#       'Name': 'tag:Name',
-#       'Values': [option]
-#    }
-#]
+#Needed? servername sets the tag information with the information provided by the user
+#servername = [{"Name": "tag:Name", "Values": [option] }]
+
+#This is a filter to pass to the boto3 commands. It narrows searches to Instances that have this tag.
 botenabled = [{"Name" :"tag:botEnabled", "Values":["True"] }]
 
 
@@ -63,21 +62,22 @@ def command_handler(body):
     
 #This is the function for the aws-start slash command.
 #if all checks are passed, the specified instance should start and 
-#the switch case should respond with the "Staring!" message
+#the switch case should respond with the "Starting!" message
 def aws_start(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
         #example reponse string(f"Instance {option} is Starting!")
-        #response = start_instance(EC2, botenabled, option)
+        response = start_instance(EC2, botenabled, option)
         message = {
-            0:(f"Instance {option} does not exist!"),1:(f"Instance {option} is Starting!"), 2:(f"Instance {option} is already Starting!")
+            0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names."), 
+            1:(f"Instance {option} is Starting!"), 
+            2:(f"Instance {option} is currently Stopping!"), 
+            3:(f"Instance {option} is already Running!")
         }
-        response_string = message[0]
+        response_string = message[response]
 
     else:
         response_string = "Not a valid option."
-    
-    
     
     return { 
         "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
@@ -94,13 +94,26 @@ def aws_start(body):
 #specified EC2 Instance
 
 def aws_status(body):
-    #option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
-    #instance_status(EC2, botenabled, option)
+    if 'options' in body['data']:
+        option = body['data']['options'][0]['value'] #Get the value of the command's argument
+        #example reponse string(f"Instance {option} is Starting!")
+        response = instance_status(EC2, botenabled, option)
+        message = {
+            0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names."), 
+            1:(f"Instance {option} is Stopping!"), 
+            2:(f"Instance {option} is currently Stopping!"), 
+            3:(f"Instance {option} is already Stopped!")
+        }
+        response_string = message[response]
+
+    else:
+        response_string = "Not a valid option."
+    
     return { 
         "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
         "data": {
             "tts": False,
-            "content": " is !",
+            "content": response_string,
             "embeds": [],
             "allowed_mentions": { "parse": [] }
         }
@@ -109,13 +122,26 @@ def aws_status(body):
 #The aws-stop command works the same as the start command,
 #just with the checks and endgoal reversed
 def aws_stop(body):
-    #option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
-    #stop_instance(EC2, botenabled, option)
+    if 'options' in body['data']:
+        option = body['data']['options'][0]['value'] #Get the value of the command's argument
+        #example reponse string(f"Instance {option} is Starting!")
+        response = stop_instance(EC2, botenabled, option)
+        message = {
+            0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names"), 
+            1:(f"Instance {option} is Stopping!"), 
+            2:(f"Instance {option} is currently Stopping!"), 
+            3:(f"Instance {option} is already Stopped!")
+        }
+        response_string = message[response]
+
+    else:
+        response_string = "Not a valid option."
+    
     return { 
         "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
         "data": {
             "tts": False,
-            "content": " is stopping!",
+            "content": response_string,
             "embeds": [],
             "allowed_mentions": { "parse": [] }
         }
@@ -124,13 +150,25 @@ def aws_stop(body):
 #The restart command works similarly to the stop command,
 #with the endgoal being to reboot the server rather than stop it
 def aws_restart(body):
-    #option = body['data']['options'][0]['value'] #Get the value of the command's argument to used for selecting the instance
-    #restart_instance(EC2, botenabled, option)
+    if 'options' in body['data']:
+        option = body['data']['options'][0]['value'] #Get the value of the command's argument
+        #example reponse string(f"Instance {option} is Starting!")
+        response = restart_instance(EC2, botenabled, option)
+        message = {
+            0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names."), 
+            1:(f"Instance {option} is Restarting!"), 
+            2:(f"Instance {option} is currently Starting!"), 
+        }
+        response_string = message[response]
+
+    else:
+        response_string = "Not a valid option."
+    
     return { 
         "type": RESPONSE_TYPES['MESSAGE_WITH_SOURCE'], 
         "data": {
             "tts": False,
-            "content": " is restarting!",
+            "content": response_string,
             "embeds": [],
             "allowed_mentions": { "parse": [] }
         }
