@@ -2,14 +2,19 @@
 
 import json
 
+import os
+from dotenv import load_dotenv, find_dotenv
+
 from nacl.signing import VerifyKey #nacl allows us to verify the public key between the app and the request
 from nacl.exceptions import BadSignatureError
 
 import boto3 
 
-#Set Public Key and Response Type Switch Cases
+#Get Public Key from Environment File
+load_dotenv(find_dotenv())
+PUBLIC_KEY = os.getenv("DISCORD_PUB_KEY") # found on Discord Application -> General Information page
 
-PUBLIC_KEY = 'KEY_GOES_HERE' # found on Discord Application -> General Information page
+#Set Response type switch cases
 PING_PONG = {"type": 1}
 RESPONSE_TYPES =  { 
                     "PONG": 1, 
