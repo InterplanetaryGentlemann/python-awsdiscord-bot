@@ -1,0 +1,29 @@
+Resources:
+  APIGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      ApiKeySourceType: "String"
+      BinaryMediaTypes:
+        BinaryMediaTypes
+      Body: JSON
+      BodyS3Location:
+        Bucket: "String"
+        ETag: "String"
+        Key: "String"
+        Version: "String"
+      CloneFrom: "String"
+      Description: "String"
+      DisableExecuteApiEndpoint: String
+      EndpointConfiguration:
+        Types:
+          -
+        VpcEndpointIds:
+          -
+      FailOnWarnings: false
+      MinimumCompressionSize: Number
+      Mode: "String"
+      Name: "String"
+      Parameters:
+      Policy: JSON
+      Tags:
+        Tags

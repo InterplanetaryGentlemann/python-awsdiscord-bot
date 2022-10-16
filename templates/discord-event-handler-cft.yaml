@@ -1,0 +1,79 @@
+Parameters:
+  UniquePrefix:
+    Type: String
+    Description: Uniquely prefix names of provisioned resources. Must be all lower-case.
+  S3BucketName:
+    Type: String
+    Description: "Bucket name passed from deploy-event-handler.py at runtime."
+  Region:
+    Type: String
+    Default: 'us-west-2'
+    
+Resources:
+  BotLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${UniquePrefix}-discord-event-handler-role'
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: !Sub "${UniquePrefix}-discord-lambda-permission-for-ec2"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Sid: VisualEditor0
+              Effect: Allow
+              Action:
+                - ec2:DescribeInstances
+                - ec2:DescribeTags
+                - ec2:DescribeInstanceStatus
+              Resource: "*"
+            - Sid: VisualEditor1
+              Effect: Allow
+              Action:
+                - ec2:RebootInstances
+                - ec2:DeleteTags
+                - ec2:StartInstances
+                - ec2:StopInstances
+                - logs:CreateLogGroup
+                - ec2:GetConsoleOutput
+              Resource:
+                - !Sub 'arn:aws:ec2:${Region}:${AWS::AccountId}:instance/*'
+                - !Sub 'arn:aws:logs:${Region}:${AWS::AccountId}:*'
+            - Sid: VisualEditor2
+              Effect: Allow
+              Action:
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: !Sub 'arn:aws:logs:${Region}:${AWS::AccountId}:log-group:/aws/lambda/discord_event_handler:*'
+
+  BotLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties: 
+      FunctionName: !Sub '${UniquePrefix}-discord-event-handler'
+      Handler: lambda_handler
+      MemorySize: 128
+      Role: !Ref BotLambdaRole
+      Runtime: python3.9
+      Timeout: 30
+      Code:
+        S3Bucket: !Ref S3BucketName
+        S3Key: 'discord_event_handler.zip'
+
+  BotPackagesLayer: 
+    Type: AWS::Lambda::LayerVersion
+    Properties: 
+      CompatibleRuntimes: 
+        - python3.9
+      Content: 
+        S3Bucket: !Ref S3BucketName
+        S3Key: 'discord_layer.zip'
+      LayerName: !Sub '${UniquePrefix}-discord-layer'
+
