@@ -7,7 +7,7 @@ from nacl.exceptions import BadSignatureError
 
 import boto3 
 
-#Set Public Key and Response Types
+#Set Public Key and Response Type Switch Cases
 
 PUBLIC_KEY = 'KEY_GOES_HERE' # found on Discord Application -> General Information page
 PING_PONG = {"type": 1}
