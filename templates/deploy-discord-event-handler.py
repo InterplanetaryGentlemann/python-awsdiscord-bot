@@ -27,6 +27,7 @@ def main():
     s3_bucket = f'{unique_prefix}-discord-event-handler-source'
     print ("Connecting to region: " + region)
     cfn_client = boto3.client('cloudformation', region)
+    generate_discord_lambda_source(s3_bucket,region)
     create_discord_lambda_stack(unique_prefix,region,s3_bucket,cfn_client)
 
 def generate_discord_lambda_source(s3_bucket,region):
