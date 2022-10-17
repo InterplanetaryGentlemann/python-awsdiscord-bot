@@ -4,13 +4,13 @@ Parameters:
     Description: Uniquely prefix names of provisioned resources. Must be all lower-case.
   S3BucketName:
     Type: String
-    Description: "Bucket name passed from deploy-event-handler.py at runtime."
+    Description: "Bucket name passed from deploy-discord-event-handler.py at creation."
   Region:
     Type: String
     Default: 'us-west-2'
     
 Resources:
-  BotLambdaRole:
+  DiscordBotLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub '${UniquePrefix}-discord-event-handler-role'
@@ -54,20 +54,20 @@ Resources:
                 - logs:PutLogEvents
               Resource: !Sub 'arn:aws:logs:${Region}:${AWS::AccountId}:log-group:/aws/lambda/discord_event_handler:*'
 
-  BotLambdaFunction:
+  DiscordBotLambdaFunction:
     Type: AWS::Lambda::Function
     Properties: 
       FunctionName: !Sub '${UniquePrefix}-discord-event-handler'
       Handler: lambda_handler
       MemorySize: 128
-      Role: !Ref BotLambdaRole
+      Role: !Ref DiscordBotLambdaRole
       Runtime: python3.9
       Timeout: 30
       Code:
         S3Bucket: !Ref S3BucketName
         S3Key: 'discord_event_handler.zip'
 
-  BotPackagesLayer: 
+  DiscordBotPackagesLayer: 
     Type: AWS::Lambda::LayerVersion
     Properties: 
       CompatibleRuntimes: 
