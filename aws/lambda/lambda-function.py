@@ -31,7 +31,9 @@ EC2 = boto3.resource('ec2')
 #servername = [{"Name": "tag:Name", "Values": [option] }]
 
 #This is a filter to pass to the boto3 commands. It narrows searches to Instances that have this tag.
-botenabled = [{"Name" :"tag:botEnabled", "Values":["True"] }]
+botenabled = [
+    {"Name" :"tag:botEnabled", "Values":["True"] }
+    ]
 
 
 #Verify the Public Key between the one we copied from the developer page and the one given in the API request
@@ -60,7 +62,11 @@ def ping_pong(body):
 def command_handler(body):
     command = body['data']['name'] #Get the name of the command from the json body
     handler = {
-        'aws-start':aws_start(body), 'aws-status':aws_status(body),'aws-stop':aws_stop(body),'aws-restart':aws_restart(body),'aws-list':aws_list()
+        'aws-start':aws_start(body), 
+        'aws-status':aws_status(body),
+        'aws-stop':aws_stop(body),
+        'aws-restart':aws_restart(body),
+        'aws-list':aws_list()
     }
 
     return handler[command]
@@ -72,7 +78,7 @@ def aws_start(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
         #example reponse string(f"Instance {option} is Starting!")
-        response = start_instance(EC2, botenabled, option)
+        response = start_instance(EC2, option)
         message = {
             0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names."), 
             1:(f"Instance {option} is Starting!"), 
@@ -209,20 +215,31 @@ def aws_list():
         }
     
 #Function that starts the instance of the given name
-def start_instance(client, filter, name):
-    instances = client.instances.filter(Filters=filter)
-    instance = get_instance(instances, name)
+def start_instance(client, name):
+    #Create a filter so that we only get the instance specified by the user
+    filter = [
+        {"Name" :"tag:botEnabled", "Values":["True"]},
+        {"Name": "tag:Name", "Values": [name] }
+        ]
+    instance = client.instances.filter(Filters=filter)
+    code = {
+
+        '':0
+
+    }
 
         #Check 1:
             #Return 0
         #Check 2:
             #Return 1
+    
     return
 
 
 #Function that gets the runtime status of the given instance
-def instance_status(client, filter, name):
+def instance_status(client, name):
     instances = client.instances.filter(Filters=filter)
+    instance = get_instance(instances, name)
 
         #Check 1:
             #Return 2
@@ -234,12 +251,14 @@ def instance_status(client, filter, name):
 #Function that stops the AWS instance with the given name
 def stop_instance(client, filter, name):
     instances = client.instances.filter(Filters=filter)
+    instance = get_instance(instances, name)
     return
 
 
 #Function that restarts the AWS instance with the given name
 def restart_instance(client, filter, name):
     instances = client.instances.filter(Filters=filter)
+    instance = get_instance(instances, name)
     return
 
 #Function that returns a list of all the AWS instances the bot 
