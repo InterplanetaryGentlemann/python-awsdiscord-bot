@@ -238,17 +238,21 @@ def start_instance(client, name):
         {"Name": "tag:Name", "Values": [name] }
         ]
     #Need a method to check if the instances variable is empty and return state = 404
-    instances = client.instances.filter(Filters=filter)
-    #Need to check to see if there is one instance or multiple instances and run the correct loop
-    for instance in instances:
-        state = instance.state['Code']
+    try:
+        instances = client.instances.filter(Filters=filter)
+        #Need to check to see if there is one instance or multiple instances and run the correct loop
+        for instance in instances:
+            state = instance.state['Code']
+        if state == 80:
+            #start instance
+            return state
+        else:
+            return state
+    except Exception as e:
+        print(e)
+        return 404
 
-    if state == 80:
-        #start instance
-        return state
-    
-    else:
-        return state
+
 
 
 #Function that gets the runtime status of the given instance
