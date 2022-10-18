@@ -1,3 +1,11 @@
+#AWS State Codes:
+#0:'pending',
+#16:'running',
+#32:'shutting-down',
+#48:'terminated',
+#64:'stopping',
+#80:'stopped'
+
 #Import Necessary Packages
 
 import json
@@ -80,11 +88,18 @@ def aws_start(body):
         #example reponse string(f"Instance {option} is Starting!")
         response = start_instance(EC2, option)
         message = {
-            0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names."), 
-            1:(f"Instance {option} is Starting!"), 
-            2:(f"Instance {option} is currently Stopping!"), 
-            3:(f"Instance {option} is already Running!")
+            
+            0:(f"Instance {option} is already Starting! Please be patient!"),
+            16:(f"Instance {option} is already Running! If you need to reboot the server run the /aws_restart command!"), 
+            32:(f"Instance {option} is currently being Terminated. Please contact the System Admin for more info."), 
+            48:(f"Instance {option} has been Terminated. Please contact the System Admin for more info"),
+            64:(f"Instance {option} is currently Stopping! Please wait before running this command again."),
+            80:(f"Starting the {option} Instance! Enjoy your playtime!"),
+            404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
+        
+            
         }
+        
         response_string = message[response]
 
     else:
@@ -108,15 +123,15 @@ def aws_status(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
         #example reponse string(f"Instance {option} is Starting!")
-        response = instance_status(EC2, botenabled, option)
+        response = instance_status(EC2, option)
         message = {
             0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names."), 
             1:(f"Instance {option} is Stopping!"), 
             2:(f"Instance {option} is currently Stopping!"), 
             3:(f"Instance {option} is already Stopped!")
         }
-        response_string = message[response]
-
+        #response_string = message[response]
+        response_string = response
     else:
         response_string = "Not a valid option."
     
@@ -136,14 +151,15 @@ def aws_stop(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
         #example reponse string(f"Instance {option} is Starting!")
-        response = stop_instance(EC2, botenabled, option)
+        response = stop_instance(EC2, option)
         message = {
             0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names"), 
             1:(f"Instance {option} is Stopping!"), 
             2:(f"Instance {option} is currently Stopping!"), 
             3:(f"Instance {option} is already Stopped!")
         }
-        response_string = message[response]
+        #response_string = message[response]
+        response_string = response
 
     else:
         response_string = "Not a valid option."
@@ -164,14 +180,14 @@ def aws_restart(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
         #example reponse string(f"Instance {option} is Starting!")
-        response = restart_instance(EC2, botenabled, option)
+        response = restart_instance(EC2, option)
         message = {
             0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names."), 
             1:(f"Instance {option} is Restarting!"), 
             2:(f"Instance {option} is currently Starting!"), 
         }
-        response_string = message[response]
-
+        #response_string = message[response]
+        response_string = response
     else:
         response_string = "Not a valid option."
     
@@ -221,25 +237,24 @@ def start_instance(client, name):
         {"Name" :"tag:botEnabled", "Values":["True"]},
         {"Name": "tag:Name", "Values": [name] }
         ]
-    instance = client.instances.filter(Filters=filter)
-    code = {
+    #Need a method to check if the instances variable is empty and return state = 404
+    instances = client.instances.filter(Filters=filter)
+    #Need to check to see if there is one instance or multiple instances and run the correct loop
+    for instance in instances:
+        state = instance.state['Code']
 
-        '':0
-
-    }
-
-        #Check 1:
-            #Return 0
-        #Check 2:
-            #Return 1
+    if state == 80:
+        #start instance
+        return state
     
-    return
+    else:
+        return state
 
 
 #Function that gets the runtime status of the given instance
 def instance_status(client, name):
-    instances = client.instances.filter(Filters=filter)
-    instance = get_instance(instances, name)
+    #instances = client.instances.filter(Filters=filter)
+    #instance = get_instance(instances, name)
 
         #Check 1:
             #Return 2
@@ -249,16 +264,16 @@ def instance_status(client, name):
 
 
 #Function that stops the AWS instance with the given name
-def stop_instance(client, filter, name):
-    instances = client.instances.filter(Filters=filter)
-    instance = get_instance(instances, name)
+def stop_instance(client, name):
+    #instances = client.instances.filter(Filters=filter)
+    #instance = get_instance(instances, name)
     return
 
 
 #Function that restarts the AWS instance with the given name
-def restart_instance(client, filter, name):
-    instances = client.instances.filter(Filters=filter)
-    instance = get_instance(instances, name)
+def restart_instance(client, name):
+    #instances = client.instances.filter(Filters=filter)
+    #instance = get_instance(instances, name)
     return
 
 #Function that returns a list of all the AWS instances the bot 
