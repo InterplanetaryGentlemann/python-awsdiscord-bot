@@ -349,15 +349,6 @@ def list_instances(client, filter):
     #Return the completed list
     return available_instances
 
-#Function that takes the list of instances from other functions and returns the instance that matches the name
-def get_instance(instances, name):
-    
-    for instance in instances:
-        if instance.tags != None:
-            for tag in instance.tags:
-                if tag['Key'] == 'Name'and tag['Value'] == name:
-                    return instance
-
 def lambda_handler(event, context):
     #print(f"event {event}") # debug print, prints the event request
     
