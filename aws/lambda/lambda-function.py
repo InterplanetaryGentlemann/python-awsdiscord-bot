@@ -95,6 +95,7 @@ def aws_start(body):
             48:(f"Instance {option} has been Terminated. Please contact the System Admin for more info"),
             64:(f"Instance {option} is currently Stopping! Please wait before running this command again."),
             80:(f"Starting the {option} Instance! Enjoy your playtime!"),
+            403:(f"Duplicate Instances with the name {option}! Please rename or terminate these Instances!"),
             404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
         
             
@@ -241,8 +242,13 @@ def start_instance(client, name):
     try:
         instances = client.instances.filter(Filters=filter)
         #Need to check to see if there is one instance or multiple instances and run the correct loop
-        for instance in instances:
-            state = instance.state['Code']
+        for i, instance in enumerate (instances, start=1):
+            if i == 1:
+                state = instance.state['Code']
+            else:
+                print(i)
+                state = 403
+                
         if state == 80:
             #start instance
             return state
@@ -251,9 +257,6 @@ def start_instance(client, name):
     except Exception as e:
         print(e)
         return 404
-
-
-
 
 #Function that gets the runtime status of the given instance
 def instance_status(client, name):
