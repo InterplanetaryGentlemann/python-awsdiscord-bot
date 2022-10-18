@@ -97,7 +97,6 @@ def aws_start(body):
             80:(f"Starting the {option} Instance! Enjoy your playtime!"),
             403:(f"Duplicate Instances with the name {option}! Please rename or terminate these Instances!"),
             404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
-        
             
         }
         
@@ -126,10 +125,16 @@ def aws_status(body):
         #example reponse string(f"Instance {option} is Starting!")
         response = instance_status(EC2, option)
         message = {
-            0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names."), 
-            1:(f"Instance {option} is Stopping!"), 
-            2:(f"Instance {option} is currently Stopping!"), 
-            3:(f"Instance {option} is already Stopped!")
+            
+            0:(f"Instance {option} is currently Starting!"),
+            16:(f"Instance {option} is currently Running"), 
+            32:(f"Instance {option} is currently being Terminated. Please contact the System Admin for more info."), 
+            48:(f"Instance {option} has been Terminated. Please contact the System Admin for more info"),
+            64:(f"Instance {option} is currently Stopping!"),
+            80:(f"Instance {option} is currently Stopped!"),
+            403:(f"Duplicate Instances with the name {option}! Please rename or terminate these Instances!"),
+            404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
+
         }
         #response_string = message[response]
         response_string = response
@@ -154,10 +159,14 @@ def aws_stop(body):
         #example reponse string(f"Instance {option} is Starting!")
         response = stop_instance(EC2, option)
         message = {
-            0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names"), 
-            1:(f"Instance {option} is Stopping!"), 
-            2:(f"Instance {option} is currently Stopping!"), 
-            3:(f"Instance {option} is already Stopped!")
+            0:(f"Instance {option} is currently Starting! Please wait for the Instance to finish before running this!"),
+            16:(f"Stopping the {option} Instance! Thanks for playing!"), 
+            32:(f"Instance {option} is currently being Terminated. Please contact the System Admin for more info."), 
+            48:(f"Instance {option} has been Terminated. Please contact the System Admin for more info"),
+            64:(f"Instance {option} is already Stopping! Please be patient!"),
+            80:(f"Instance {option} is already Stopped! Use /aws-start to Start the Instance!"),
+            403:(f"Duplicate Instances with the name {option}! Please rename or terminate these Instances!"),
+            404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
         }
         #response_string = message[response]
         response_string = response
@@ -183,9 +192,14 @@ def aws_restart(body):
         #example reponse string(f"Instance {option} is Starting!")
         response = restart_instance(EC2, option)
         message = {
-            0:(f"Instance {option} does not exist! Run aws-list to view valid Instance names."), 
-            1:(f"Instance {option} is Restarting!"), 
-            2:(f"Instance {option} is currently Starting!"), 
+            0:(f"Instance {option} is currently Starting! Please wait for the Instance to finish before running this!"),
+            16:(f"Restarting the {option} Instance! It'll be back soon!"), 
+            32:(f"Instance {option} is currently being Terminated. Please contact the System Admin for more info."), 
+            48:(f"Instance {option} has been Terminated. Please contact the System Admin for more info"),
+            64:(f"Instance {option} is already Stopping! Please be patient!"),
+            80:(f"Instance {option} is already Stopped! Use /aws-start to Start the Instance!"),
+            403:(f"Duplicate Instances with the name {option}! Please rename or terminate these Instances!"),
+            404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
         }
         #response_string = message[response]
         response_string = response
@@ -251,7 +265,7 @@ def start_instance(client, name):
                 
         if state == 80:
             #start instance
-            return state
+            return state 
         else:
             return state
     except Exception as e:
@@ -274,7 +288,7 @@ def instance_status(client, name):
 def stop_instance(client, name):
     #instances = client.instances.filter(Filters=filter)
     #instance = get_instance(instances, name)
-    return
+    return 
 
 
 #Function that restarts the AWS instance with the given name
