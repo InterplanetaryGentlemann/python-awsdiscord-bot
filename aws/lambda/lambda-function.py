@@ -274,24 +274,59 @@ def start_instance(client, name):
 
 #Function that gets the runtime status of the given instance
 def instance_status(client, name):
-    #instances = client.instances.filter(Filters=filter)
-    #instance = get_instance(instances, name)
+    #Create a filter so that we only get the instance specified by the user
+    filter = [
+        {"Name" :"tag:botEnabled", "Values":["True"]},
+        {"Name": "tag:Name", "Values": [name] }
+        ]
+    #Need a method to check if the instances variable is empty and return state = 404
+    try:
+        instances = client.instances.filter(Filters=filter)
+        #Need to check to see if there is one instance or multiple instances and run the correct loop
+        for i, instance in enumerate (instances, start=1):
+            if i == 1:
+                state = instance.state['Code']
+            else:
+                print(i)
+                state = 403
+        return state
 
-        #Check 1:
-            #Return 2
-        #Check 2: 
-            #Return 3
-    return
+    except Exception as e:
+        print(e)
+        return 404
+
 
 
 #Function that stops the AWS instance with the given name
 def stop_instance(client, name):
-    #instances = client.instances.filter(Filters=filter)
-    #instance = get_instance(instances, name)
-    return 
+    #Create a filter so that we only get the instance specified by the user
+    filter = [
+        {"Name" :"tag:botEnabled", "Values":["True"]},
+        {"Name": "tag:Name", "Values": [name] }
+        ]
+    #Need a method to check if the instances variable is empty and return state = 404
+    try:
+        instances = client.instances.filter(Filters=filter)
+        #Need to check to see if there is one instance or multiple instances and run the correct loop
+        for i, instance in enumerate (instances, start=1):
+            if i == 1:
+                state = instance.state['Code']
+            else:
+                print(i)
+                state = 403
+                
+        if state == 16:
+            #stop instance
+            return state 
+        else:
+            return state
+    except Exception as e:
+        print(e)
+        return 404
 
 
 #Function that restarts the AWS instance with the given name
+#Same as AWS stop, keep it as a separate function or add and extra parameter to the stop function?
 def restart_instance(client, name):
     #instances = client.instances.filter(Filters=filter)
     #instance = get_instance(instances, name)
