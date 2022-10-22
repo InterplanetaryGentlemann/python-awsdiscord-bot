@@ -16,4 +16,18 @@ The easy solution with the cloud is to just pay for what you use, shut the serve
 The Solution for me was to create this Discord Bot to run on our server. This bot runs serverless as lambda function called via an API Gateway, allowing the bot to only run when a command is called in the Discord Server.
 
 Currently, this bot is designed to:
-* List AWS
+* Get a list of availabe EC2 Instances based on tags
+* Get the current state of a specified instance
+* Start, Restart, or Stop a specified instance
+
+Breakdown of commands:
+*/aws-list
+* ** Generates a list of all the instances the bot can currently see
+*/aws-status -instance ''
+* ** Gets the current state of the instance specified in the 'instance' parameter
+*/aws-start -instance ''
+* ** Starts the instance specified in the instance option
+*/aws-stop -instance ''
+* ** Stops the instanc especified in the instance option
+*/aws-restart -instance ''
+* ** Restarts the instance specified in the instance option
