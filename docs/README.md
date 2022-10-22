@@ -22,12 +22,12 @@ Currently, this bot is designed to:
 
 Breakdown of commands:
 */aws-list
-  - Generates a list of all the instances the bot can currently see
+- Generates a list of all the instances the bot can currently see
 */aws-status -instance ' '
-  - Gets the current state of the instance specified in the 'instance' parameter
+- Gets the current state of the instance specified in the 'instance' parameter
 */aws-start -instance ' '
-  - Starts the instance specified in the instance option
+- Starts the instance specified in the instance option
 */aws-stop -instance ' '
-  - Stops the instanc especified in the instance option
+- Stops the instanc especified in the instance option
 */aws-restart -instance ' '
-  - Restarts the instance specified in the instance option
+- Restarts the instance specified in the instance option
