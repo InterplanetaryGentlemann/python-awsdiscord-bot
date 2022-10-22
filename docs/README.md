@@ -21,13 +21,13 @@ Currently, this bot is designed to:
 * Start, Restart, or Stop a specified instance
 
 Breakdown of commands:
-*/aws-list
- * Generates a list of all the instances the bot can currently see
-*/aws-status -instance ' '
- * Gets the current state of the instance specified in the 'instance' parameter
-*/aws-start -instance ' '
- * Starts the instance specified in the instance option
-*/aws-stop -instance ' '
- * Stops the instanc especified in the instance option
-*/aws-restart -instance ' '
- * Restarts the instance specified in the instance option
+1. /aws-list
+  * Generates a list of all the instances the bot can currently see
+2. /aws-status -instance ' '
+  * Gets the current state of the instance specified in the 'instance' parameter
+3. /aws-start -instance ' '
+  * Starts the instance specified in the instance option
+4. /aws-stop -instance ' '
+  * Stops the instanc especified in the instance option
+5. /aws-restart -instance ' '
+  * Restarts the instance specified in the instance option
