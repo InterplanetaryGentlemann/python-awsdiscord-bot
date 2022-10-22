@@ -1,11 +1,3 @@
-#AWS State Codes:
-#0:'pending',
-#16:'running',
-#32:'shutting-down',
-#48:'terminated',
-#64:'stopping',
-#80:'stopped'
-
 #This module contains all of the code pertaining to the bot's 
 #slash commands and the formulation of the responses.
 
@@ -17,8 +9,6 @@ import instancecmds as icmd
 
 import json
 
-import boto3 
-
 #Case Switch for Discord's response types
 RESPONSE_TYPES =  { 
                     "PONG": 1, 
@@ -28,13 +18,6 @@ RESPONSE_TYPES =  {
                     "ACK_WITH_SOURCE": 5
                   }
 
-#boto3 client set to the ec2 resource type
-EC2 = boto3.resource('ec2') 
-
-#This is a filter to pass to the boto3 commands. It narrows searches to Instances that have this tag.
-botenabled = [
-    {"Name" :"tag:botEnabled", "Values":["True"] }
-    ]
 
 #This is a simple function that takes the string content provided to it 
 #and returns it as a json response for the discord application
@@ -56,8 +39,8 @@ def jsonresponse(content):
 def aws_start(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
-        response = icmd.start_instance(EC2, option)
-        message = {
+        response = icmd.start_instance(option)
+        start_message = {
             
             0:(f"Instance {option} is already Starting! Please be patient!"),
             16:(f"Instance {option} is already Running! If you need to reboot the server run the /aws_restart command!"), 
@@ -70,7 +53,7 @@ def aws_start(body):
             
         }
         
-        response_string = message[response]
+        response_string = start_message[response]
 
     else:
         response_string = "Not a valid option."
@@ -85,8 +68,8 @@ def aws_status(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
         #example reponse string(f"Instance {option} is Starting!")
-        response = icmd.instance_status(EC2, option)
-        message = {
+        response = icmd.instance_status(option)
+        status_message = {
             
             0:(f"Instance {option} is currently Starting!"),
             16:(f"Instance {option} is currently Running"), 
@@ -98,7 +81,7 @@ def aws_status(body):
             404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
 
         }
-        response_string = message[response]
+        response_string = status_message[response]
     else:
         response_string = "Not a valid option."
     
@@ -109,8 +92,9 @@ def aws_status(body):
 def aws_stop(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
-        response = icmd.stop_instance(EC2, option, False)
-        message = {
+        response = icmd.stop_instance(option, False)
+        stop_message = {
+
             0:(f"Instance {option} is currently Starting! Please wait for the Instance to finish before running this!"),
             16:(f"Stopping the {option} Instance! Thanks for playing!"), 
             32:(f"Instance {option} is currently being Terminated. Please contact the System Admin for more info."), 
@@ -120,7 +104,7 @@ def aws_stop(body):
             403:(f"Duplicate Instances with the name {option}! Please rename or terminate these Instances!"),
             404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
         }
-        response_string = message[response]
+        response_string = stop_message[response]
 
     else:
         response_string = "Not a valid option."
@@ -132,8 +116,9 @@ def aws_stop(body):
 def aws_restart(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
-        response = icmd.stop_instance(EC2, option, True)
-        message = {
+        response = icmd.stop_instance(option, True)
+        restart_message = {
+
             0:(f"Instance {option} is currently Starting! Please wait for the Instance to finish before running this!"),
             16:(f"Restarting the {option} Instance! It'll be back soon!"), 
             32:(f"Instance {option} is currently being Terminated. Please contact the System Admin for more info."), 
@@ -143,15 +128,17 @@ def aws_restart(body):
             403:(f"Duplicate Instances with the name {option}! Please rename or terminate these Instances!"),
             404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
         }
-        response_string = message[response]
+        response_string = restart_message[response]
     else:
         response_string = "Not a valid option."
     
     return jsonresponse(response_string)
 
+#Get a list of all the instances the bot can see based on the
+#botenabled tag
 def aws_list():
     #Get instance names
-    instances = icmd.list_instances(EC2, botenabled)
+    instances = icmd.list_instances()
 
     #If the list is empty, respond that no instances were found
     if instances == []:
