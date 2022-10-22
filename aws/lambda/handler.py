@@ -1,7 +1,7 @@
 #This is the main script that gets called by the API gateway and handles
-#Whether the input is a valid command or not
+#the resulting json request
 
-#Import other code module
+#Import Commands Module
 import commands as cmd
 
 #Import Necessary Packages
@@ -12,14 +12,16 @@ from dotenv import load_dotenv, find_dotenv
 from nacl.signing import VerifyKey #nacl allows us to verify the public key between the app and the request
 from nacl.exceptions import BadSignatureError
 
-#Get Public Key from Environment File
+#Get Public Key from Environment File - Needs to be set by bot admin
 load_dotenv(find_dotenv())
 PUBLIC_KEY = os.getenv("DISCORD_PUB_KEY") # found on Discord Application -> General Information page
+TEXT_CHANNEL = os.getenv("TEXT_CHANNEL") # The ID of the Discord Channel you wan to use the bot in
 
-#Set Response type switch cases
+#Set Response type for discord's Ping request
 PING_PONG = {"type": 1}
 
-#Verify the Public Key between the one we copied from the developer page and the one given in the API request
+#Verify the Public Key between the one we copied from the developer 
+#page and the one given in the API request headers
 
 def verify_signature(event):
     raw_body = event.get("rawBody")
@@ -43,19 +45,29 @@ def ping_pong(body):
 #the related function
 
 def command_handler(body):
-    command = body['data']['name'] #Get the name of the command from the json body
-    handler = {
-        'aws-start':cmd.aws_start(body), 
-        'aws-status':cmd.aws_status(body),
-        'aws-stop':cmd.aws_stop(body),
-        'aws-restart':cmd.aws_restart(body),
-        'aws-list':cmd.aws_list()
+    if TEXT_CHANNEL == body['channel_id']:
+        command = body['data']['name'] #Get the name of the command from the json body
+        handler = {
+            'aws-start':cmd.aws_start(body), 
+            'aws-status':cmd.aws_status(body),
+            'aws-stop':cmd.aws_stop(body),
+            'aws-restart':cmd.aws_restart(body),
+            'aws-list':cmd.aws_list()
+        }
+
+        return handler[command]
+    else:
+        return { 
+        "type": 4, 
+        "data": {
+            "tts": False,
+            "content": "Bot is not authorized for use in this channel",
+            "embeds": [],
+            "allowed_mentions": { "parse": [] }
+        } 
     }
 
-    return handler[command]
-
-#Main Lambda function, gets called when an event hits the API Gateway 
-
+#Main Lambda function, gets called when an event hits the API Gateway
 def lambda_handler(event, context):
     #print(f"event {event}") # debug print, prints the event request
     
@@ -65,6 +77,7 @@ def lambda_handler(event, context):
     except Exception as e:
         raise Exception(f"[UNAUTHORIZED] Invalid request signature: {e}")
 
+    #Get the json request from the event
     body = event.get('body-json')
     
     if ping_pong(body):
