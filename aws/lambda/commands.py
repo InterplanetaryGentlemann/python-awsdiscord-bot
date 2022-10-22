@@ -109,8 +109,7 @@ def aws_status(body):
 def aws_stop(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
-        #example reponse string(f"Instance {option} is Starting!")
-        response = icmd.stop_instance(EC2, option)
+        response = icmd.stop_instance(EC2, option, False)
         message = {
             0:(f"Instance {option} is currently Starting! Please wait for the Instance to finish before running this!"),
             16:(f"Stopping the {option} Instance! Thanks for playing!"), 
@@ -128,13 +127,12 @@ def aws_stop(body):
     
     return jsonresponse(response_string)
 
-#The restart command works similarly to the stop command,
-#with the endgoal being to reboot the server rather than stop it
+#The restart command uses the stop instance function with the restart flag
+#set to true. See instancecmds.py for more info
 def aws_restart(body):
     if 'options' in body['data']:
         option = body['data']['options'][0]['value'] #Get the value of the command's argument
-        #example reponse string(f"Instance {option} is Starting!")
-        response = icmd.restart_instance(EC2, option)
+        response = icmd.stop_instance(EC2, option, True)
         message = {
             0:(f"Instance {option} is currently Starting! Please wait for the Instance to finish before running this!"),
             16:(f"Restarting the {option} Instance! It'll be back soon!"), 
@@ -145,7 +143,7 @@ def aws_restart(body):
             403:(f"Duplicate Instances with the name {option}! Please rename or terminate these Instances!"),
             404:(f"Instance {option} does not exist! Run aws-list to view valid Instance names.")
         }
-        response_string = "Test String" #message[response]
+        response_string = message[response]
     else:
         response_string = "Not a valid option."
     

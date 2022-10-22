@@ -53,10 +53,9 @@ def instance_status(client, name):
         print(e)
         return 404
 
-
-
-#Function that stops the AWS instance with the given name
-def stop_instance(client, name):
+#Function that stops the AWS instance with the given name,
+#Function will also reboot instance if the 'restart' flag is set to true.
+def stop_instance(client, name, restart):
     #Create a filter so that we only get the instance specified by the user
     filter = [
         {"Name" :"tag:botEnabled", "Values":["True"]},
@@ -73,23 +72,19 @@ def stop_instance(client, name):
                 print(i)
                 state = 403
                 
-        if state == 16:
+        if state == 16 and restart == False:
             #stop instance
             instance.stop()
             return state 
+        elif state == 16 and restart == True:
+            instance.restart()
+            return state
         else:
             return state
+
     except Exception as e:
         print(e)
         return 404
-
-
-#Function that restarts the AWS instance with the given name
-#Same as AWS stop, keep it as a separate function or add and extra parameter to the stop function?
-def restart_instance(client, name):
-    #instances = client.instances.filter(Filters=filter)
-    #instance = get_instance(instances, name)
-    return
 
 #Function that returns a list of all the AWS instances the bot 
 def list_instances(client, filter):
